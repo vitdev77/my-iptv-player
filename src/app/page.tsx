@@ -22,6 +22,7 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
+
 interface Channel {
   id: string;
   name: string;
@@ -30,6 +31,7 @@ interface Channel {
   url: string;
   isFavorite: boolean;
 }
+
 interface SidebarInnerProps {
   channels: Channel[];
   isLoading: boolean;
@@ -59,6 +61,7 @@ interface SidebarInnerProps {
   loadChannels: () => void;
   toggleFavorite: (e: React.MouseEvent, channel: Channel) => void;
 }
+
 function SidebarInner({
   channels,
   isLoading,
@@ -90,10 +93,15 @@ function SidebarInner({
 }: SidebarInnerProps) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
+
   return (
     <div className="flex flex-col h-full bg-card/50">
-      <div className="p-4 border-b border-border flex flex-col gap-3">
-        <div className="flex items-center justify-between px-1">
+      <div
+        className={`p-4 border-b border-border flex flex-col gap-3 ${isCollapsed ? "px-1 py-4 items-center" : ""}`}
+      >
+        <div
+          className={`flex items-center w-full ${isCollapsed ? "flex-col gap-3 justify-center" : "justify-between px-1"}`}
+        >
           <div
             className={`flex items-center gap-2 ${isCollapsed ? "hidden" : ""}`}
           >
@@ -101,12 +109,12 @@ function SidebarInner({
             <h1 className="font-semibold text-lg tracking-tight">Neon IPTV</h1>
           </div>
           <div
-            className={`flex items-center gap-1 ${isCollapsed ? "mx-auto flex-col gap-3" : ""}`}
+            className={`flex items-center gap-1 ${isCollapsed ? "flex-col gap-3 w-full justify-center items-center" : ""}`}
           >
             {mounted && (
               <Button
                 variant="ghost"
-                size="icon-xs"
+                size="icon-sm"
                 className="cursor-pointer"
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               >
@@ -154,7 +162,9 @@ function SidebarInner({
                 <Button
                   variant={viewMode === "favorites" ? "outline" : "ghost"}
                   size="xs"
-                  className={`cursor-pointer text-center py-1 h-auto w-full flex items-center justify-center gap-1 ${viewMode === "favorites" ? "text-yellow-500" : ""}`}
+                  className={`cursor-pointer text-center py-1 h-auto w-full flex items-center justify-center gap-1 ${
+                    viewMode === "favorites" ? "text-yellow-500" : ""
+                  }`}
                   onClick={() => handleViewModeChange("favorites")}
                 >
                   <Star className="h-3 w-3 fill-current" />
@@ -167,7 +177,12 @@ function SidebarInner({
       </div>
       <div
         ref={sidebarScrollRef}
-        className={`flex-1 overflow-y-auto px-4 py-3 h-full ${isCollapsed ? "hidden" : ""} [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 [&::-webkit-scrollbar-thumb]:rounded-full`}
+        className={
+          `flex-1 overflow-y-auto px-4 py-3 h-full ${
+            isCollapsed ? "hidden" : ""
+          } [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent ` +
+          `[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 [&::-webkit-scrollbar-thumb]:rounded-full`
+        }
       >
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-8 gap-2 text-muted-foreground">
@@ -232,7 +247,11 @@ function SidebarInner({
                         className="p-1.5 rounded-md cursor-pointer h-7 w-7 flex items-center justify-center"
                       >
                         <Star
-                          className={`h-4 w-4 ${channel.isFavorite ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground opacity-40 group-hover:opacity-100"}`}
+                          className={`h-4 w-4 ${
+                            channel.isFavorite
+                              ? "fill-yellow-500 text-yellow-500"
+                              : "text-muted-foreground opacity-40 group-hover:opacity-100"
+                          }`}
                         />
                       </Button>
                     </div>
@@ -287,7 +306,11 @@ function SidebarInner({
                         <div className="flex flex-col truncate">
                           <span className="truncate">{channel.name}</span>
                           <span
-                            className={`text-[10px] truncate ${activeChannel?.id === channel.id ? "text-primary-foreground/70" : "text-muted-foreground"}`}
+                            className={`text-[10px] truncate ${
+                              activeChannel?.id === channel.id
+                                ? "text-primary-foreground/70"
+                                : "text-muted-foreground"
+                            }`}
                           >
                             {channel.group || "Общие"}
                           </span>
@@ -300,7 +323,11 @@ function SidebarInner({
                         className="p-1.5 rounded-md cursor-pointer h-7 w-7 flex items-center justify-center"
                       >
                         <Star
-                          className={`h-4 w-4 ${channel.isFavorite ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground opacity-40 group-hover:opacity-100"}`}
+                          className={`h-4 w-4 ${
+                            channel.isFavorite
+                              ? "fill-yellow-500 text-yellow-500"
+                              : "text-muted-foreground opacity-40 group-hover:opacity-100"
+                          }`}
                         />
                       </Button>
                     </div>
@@ -370,9 +397,11 @@ export default function Home() {
   const sidebarScrollRef = useRef<HTMLDivElement>(null);
   const channelsTriggerRef = useRef<HTMLDivElement>(null);
   const groupsTriggerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
   const loadChannels = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -417,17 +446,21 @@ export default function Home() {
       setIsLoading(false);
     }
   }, []);
+
   useEffect(() => {
     loadChannels();
   }, [loadChannels]);
+
   useEffect(() => {
     setVisibleChannelsCount(50);
     setVisibleGroupsCount(50);
   }, [searchQuery, selectedGroup, viewMode]);
+
   const favoriteChannels = useMemo(
     () => channels.filter((c) => c.isFavorite),
     [channels],
   );
+
   const filteredChannels = useMemo(() => {
     const source = viewMode === "favorites" ? favoriteChannels : channels;
     return source.filter((channel) => {
@@ -439,6 +472,7 @@ export default function Home() {
       return matchesGroup && matchesSearch;
     });
   }, [channels, favoriteChannels, selectedGroup, searchQuery, viewMode]);
+
   useEffect(() => {
     if (!activeChannel || filteredChannels.length === 0) return;
     const index = filteredChannels.findIndex((c) => c.id === activeChannel.id);
@@ -458,10 +492,12 @@ export default function Home() {
       }
     }, 150);
   }, [activeChannel, filteredChannels, visibleChannelsCount]);
+
   const handleChannelSelect = (channel: Channel) => {
     setActiveChannel(channel);
     localStorage.setItem("neon_iptv_last_channel_id", String(channel.id));
   };
+
   const handleViewModeChange = (mode: "categories" | "all" | "favorites") => {
     setViewMode(mode);
     localStorage.setItem("neon_iptv_view_mode", mode);
@@ -470,6 +506,7 @@ export default function Home() {
       localStorage.removeItem("neon_iptv_selected_group");
     }
   };
+
   const handleGroupSelect = (group: string | null) => {
     setSelectedGroup(group);
     if (group) {
@@ -478,6 +515,7 @@ export default function Home() {
       localStorage.removeItem("neon_iptv_selected_group");
     }
   };
+
   const toggleFavorite = (e: React.MouseEvent, channel: Channel) => {
     e.stopPropagation();
     const nextState = !channel.isFavorite;
@@ -507,6 +545,7 @@ export default function Home() {
       body: JSON.stringify({ channelId: channel.id, isFavorite: nextState }),
     }).catch((err) => console.error(err));
   };
+
   const groupCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     const source = viewMode === "favorites" ? favoriteChannels : channels;
@@ -516,6 +555,7 @@ export default function Home() {
     });
     return counts;
   }, [channels, favoriteChannels, viewMode]);
+
   const groups = useMemo(() => {
     const uniqueGroups = new Set<string>();
     const source = viewMode === "favorites" ? favoriteChannels : channels;
@@ -524,19 +564,23 @@ export default function Home() {
     });
     return Array.from(uniqueGroups);
   }, [channels, favoriteChannels, viewMode]);
+
   const filteredGroups = useMemo(
     () =>
       groups.filter((g) => g.toLowerCase().includes(searchQuery.toLowerCase())),
     [groups, searchQuery],
   );
+
   const displayedChannels = useMemo(
     () => filteredChannels.slice(0, visibleChannelsCount),
     [filteredChannels, visibleChannelsCount],
   );
+
   const displayedGroups = useMemo(
     () => filteredGroups.slice(0, visibleGroupsCount),
     [filteredGroups, visibleGroupsCount],
   );
+
   useEffect(() => {
     if (isLoading) return;
     const trigger = channelsTriggerRef.current;
@@ -560,6 +604,7 @@ export default function Home() {
     isLoading,
     visibleChannelsCount,
   ]);
+
   useEffect(() => {
     if (isLoading) return;
     const trigger = groupsTriggerRef.current;
@@ -578,6 +623,7 @@ export default function Home() {
     observer.observe(trigger);
     return () => observer.disconnect();
   }, [displayedGroups, filteredGroups.length, isLoading, visibleGroupsCount]);
+
   return (
     <div className="flex h-screen w-screen bg-background text-foreground overflow-hidden">
       <Sidebar collapsible="icon" className="border-r border-border bg-card/50">
