@@ -35,8 +35,9 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
               maxBufferLength: 4,
               maxMaxBufferLength: 6,
               liveSyncDurationCount: 2,
-              liveMaxLatencyDurationCount: 4,
+              liveMaxLatencyDurationCount: 3,
               enableWorker: true,
+              backBufferLength: 0,
             });
             hls.loadSource(url);
             hls.attachMedia(video);
@@ -63,6 +64,27 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
                   return item.html;
                 },
               });
+            });
+
+            hls.on(Hls.Events.ERROR, function (event, data) {
+              if (data.fatal) {
+                switch (data.type) {
+                  case Hls.ErrorTypes.NETWORK_ERROR:
+                    console.log(
+                      "Сбой сети, пробуем восстановить соединение...",
+                    );
+                    hls.startLoad();
+                    break;
+                  case Hls.ErrorTypes.MEDIA_ERROR:
+                    console.log("Ошибка медиа-буфера, пробуем восстановить...");
+                    hls.recoverMediaError();
+                    break;
+                  default:
+                    console.log("Неисправимая ошибка, перезапускаем плеер...");
+                    art.switchUrl(url);
+                    break;
+                }
+              }
             });
 
             art.on("destroy", () => hls.destroy());
@@ -107,7 +129,9 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
       if (hlsInstanceRef.current) {
         hlsInstanceRef.current.destroy();
       }
-      const hls = new Hls();
+      const hls = new Hls({
+        backBufferLength: 0,
+      });
       hls.loadSource(src);
       hls.attachMedia(video);
       hlsInstanceRef.current = hls;
@@ -116,6 +140,16 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
         video
           .play()
           .catch((err) => console.log("Автозапуск заблокирован:", err));
+      });
+
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            hls.startLoad();
+          } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+            hls.recoverMediaError();
+          }
+        }
       });
     }
 
