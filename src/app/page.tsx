@@ -33,6 +33,7 @@ import {
   Moon,
   Trash2,
   FileText,
+  Menu,
 } from "lucide-react";
 
 interface Channel {
@@ -105,8 +106,8 @@ function SidebarInner({
   toggleFavorite,
   onClearClick,
 }: SidebarInnerProps) {
-  const { state } = useSidebar();
-  const isCollapsed = state === "collapsed";
+  const { state, isMobile } = useSidebar();
+  const isCollapsed = state === "collapsed" && !isMobile;
 
   return (
     <div className="flex flex-col h-full bg-card/50">
@@ -122,18 +123,12 @@ function SidebarInner({
               : "justify-between px-1"
           }`}
         >
-          <div
-            className={`flex items-center gap-2 ${isCollapsed ? "hidden" : ""}`}
-          >
+          <div className="flex items-center gap-2">
             <Tv className="h-5 w-5 text-primary" />
             <h1 className="font-semibold text-lg tracking-tight">Neon IPTV</h1>
           </div>
           <div
-            className={`flex items-center gap-1 ${
-              isCollapsed
-                ? "flex-col gap-3 w-full justify-center items-center"
-                : ""
-            }`}
+            className={`flex items-center gap-1 ${isCollapsed ? "flex-col gap-3 w-full" : ""}`}
           >
             {mounted && (
               <Button
@@ -149,7 +144,7 @@ function SidebarInner({
                 )}
               </Button>
             )}
-            <SidebarTrigger />
+            {!isMobile && <SidebarTrigger />}
           </div>
         </div>
         {!isCollapsed && (
@@ -214,9 +209,8 @@ function SidebarInner({
       <div
         ref={sidebarScrollRef}
         className={
-          `flex-1 overflow-y-auto px-4 pb-3 pt-0 relative ${
-            isCollapsed ? "hidden" : ""
-          } [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent ` +
+          `flex-1 overflow-y-auto px-4 pb-3 pt-0 relative ` +
+          `[&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent ` +
           `[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 [&::-webkit-scrollbar-thumb]:rounded-full`
         }
       >
@@ -414,7 +408,7 @@ function SidebarInner({
           </div>
         )}
       </div>
-      {!isCollapsed && channels.length > 0 && (
+      {channels.length > 0 && (
         <div className="p-3 m-4 mt-auto rounded-xl bg-muted/40 border border-border flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center gap-2 truncate min-w-0">
             <FileText className="h-4 w-4 text-primary shrink-0" />
@@ -575,7 +569,6 @@ export default function Home() {
       }
     }, 150);
   }, [activeChannel, filteredChannels, visibleChannelsCount]);
-
   const handleChannelSelect = (channel: Channel) => {
     setActiveChannel(channel);
     localStorage.setItem("neon_iptv_last_channel_id", String(channel.id));
@@ -671,7 +664,7 @@ export default function Home() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (
-          entries?.[0]?.isIntersecting &&
+          entries[0]?.isIntersecting &&
           visibleChannelsCount < filteredChannels.length
         ) {
           setVisibleChannelsCount((prev) => prev + 50);
@@ -695,7 +688,7 @@ export default function Home() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (
-          entries?.[0]?.isIntersecting &&
+          entries[0]?.isIntersecting &&
           visibleGroupsCount < filteredGroups.length
         ) {
           setVisibleGroupsCount((prev) => prev + 50);
@@ -708,7 +701,16 @@ export default function Home() {
   }, [displayedGroups, filteredGroups.length, isLoading, visibleGroupsCount]);
 
   return (
-    <div className="flex h-screen w-screen bg-background text-foreground overflow-hidden">
+    <div className="flex h-screen w-screen bg-background text-foreground overflow-hidden flex-col md:flex-row">
+      <header className="flex h-14 items-center justify-between px-4 border-b border-border bg-card md:hidden shrink-0 w-full">
+        <div className="flex items-center gap-2">
+          <Tv className="h-5 w-5 text-primary" />
+          <span className="font-semibold text-sm tracking-tight truncate max-w-45">
+            {activeChannel?.name || "Neon IPTV"}
+          </span>
+        </div>
+        <SidebarTrigger />
+      </header>
       <Sidebar collapsible="icon" className="border-r border-border bg-card/50">
         <SidebarContent>
           <SidebarInner
@@ -743,7 +745,7 @@ export default function Home() {
           />
         </SidebarContent>
       </Sidebar>
-      <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-6 bg-background h-full w-full">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-6 bg-background h-full w-full min-h-0">
         <div className="w-full h-full flex items-center justify-center">
           <VideoPlayer
             src={activeChannel?.url ?? null}

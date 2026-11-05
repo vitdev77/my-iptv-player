@@ -70,17 +70,12 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
               if (data.fatal) {
                 switch (data.type) {
                   case Hls.ErrorTypes.NETWORK_ERROR:
-                    console.log(
-                      "Сбой сети, пробуем восстановить соединение...",
-                    );
                     hls.startLoad();
                     break;
                   case Hls.ErrorTypes.MEDIA_ERROR:
-                    console.log("Ошибка медиа-буфера, пробуем восстановить...");
                     hls.recoverMediaError();
                     break;
                   default:
-                    console.log("Неисправимая ошибка, перезапускаем плеер...");
                     art.switchUrl(url);
                     break;
                 }
@@ -99,13 +94,21 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
           name: "quality",
           type: "selector",
           html: "Качество",
-          selector: [{ html: "Авто", index: -1 }],
+          selector: [{ html: "Autо", index: -1 }],
         },
       ],
       volume: 0.7,
       fullscreen: true,
+      fullscreenWeb: true,
       pip: true,
       theme: "#3b82f6",
+      playsInline: true,
+      autoSize: true,
+      autoMini: true,
+      autoPlayback: true,
+      fastForward: true,
+      lock: true,
+      plugins: [],
     });
 
     instanceRef.current = art;
@@ -162,9 +165,9 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
   }, [src, playerMode]);
 
   return (
-    <div className="flex flex-col gap-4 w-full h-full">
+    <div className="flex flex-col gap-4 w-full h-full min-h-0 flex-1">
       {src && (
-        <div className="flex justify-end gap-1 p-1 bg-muted rounded-lg text-xs w-fit self-end">
+        <div className="flex justify-end gap-1 p-1 bg-muted rounded-lg text-xs w-fit self-end shrink-0">
           <button
             className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
               playerMode === "artplayer"
@@ -188,7 +191,7 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
         </div>
       )}
 
-      <div className="aspect-video w-full overflow-hidden rounded-xl bg-black shadow-lg ring-1 ring-border flex items-center justify-center">
+      <div className="relative w-full flex-1 min-h-0 rounded-xl bg-black shadow-lg ring-1 ring-border overflow-hidden flex items-center justify-center aspect-video max-h-[80vh]">
         {src ? (
           playerMode === "artplayer" ? (
             <div ref={artRef} className="w-full h-full" />
@@ -197,19 +200,24 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
               ref={htmlVideoRef}
               controls
               className="w-full h-full object-contain"
+              playsInline
+              webkit-playsinline="true"
+              x5-playsinline="true"
             />
           )
         ) : (
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm p-4 text-center">
             Выберите канал для начала воспроизведения
           </p>
         )}
       </div>
 
       {name && src && (
-        <div className="px-1">
-          <h2 className="text-xl font-bold tracking-tight">{name}</h2>
-          <p className="text-sm text-muted-foreground">
+        <div className="px-1 shrink-0">
+          <h2 className="text-lg md:text-xl font-bold tracking-tight truncate max-w-full">
+            {name}
+          </h2>
+          <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
             Движок:{" "}
             {playerMode === "artplayer"
               ? "Artplayer (Low-Latency)"
