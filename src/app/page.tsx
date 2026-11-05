@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { VideoPlayer } from "@/components/videoPlayer";
 import { UploadDialog } from "@/components/uploadDialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Sidebar,
   SidebarTrigger,
   SidebarContent,
@@ -21,6 +31,8 @@ import {
   Star,
   Sun,
   Moon,
+  Trash2,
+  FileText,
 } from "lucide-react";
 
 interface Channel {
@@ -60,6 +72,7 @@ interface SidebarInnerProps {
   groupsTriggerRef: React.RefObject<HTMLDivElement | null>;
   loadChannels: () => void;
   toggleFavorite: (e: React.MouseEvent, channel: Channel) => void;
+  onClearClick: () => void;
 }
 
 function SidebarInner({
@@ -90,6 +103,7 @@ function SidebarInner({
   groupsTriggerRef,
   loadChannels,
   toggleFavorite,
+  onClearClick,
 }: SidebarInnerProps) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -200,22 +214,22 @@ function SidebarInner({
       <div
         ref={sidebarScrollRef}
         className={
-          `flex-1 overflow-y-auto px-4 py-3 h-full ${
+          `flex-1 overflow-y-auto px-4 pb-3 pt-0 relative ${
             isCollapsed ? "hidden" : ""
           } [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent ` +
           `[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 [&::-webkit-scrollbar-thumb]:rounded-full`
         }
       >
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-8 gap-2 text-muted-foreground">
+          <div className="flex flex-col items-center justify-center py-12 gap-2 text-muted-foreground">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
             <p className="text-xs">Загрузка базы...</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 pt-3">
             {selectedGroup || searchQuery ? (
-              <div>
-                <div className="flex items-center justify-between px-1 mb-2">
+              <div className="pt-0">
+                <div className="sticky top-0 bg-background/95 backdrop-blur-md pt-3 pb-2 mb-2 z-10 flex items-center justify-between border-b border-border/40">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider truncate max-w-45">
                     {selectedGroup || "Поиск"}
                   </p>
@@ -223,7 +237,7 @@ function SidebarInner({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 px-2 text-xs gap-1"
+                      className="h-7 px-2 text-xs gap-1 cursor-pointer"
                       onClick={() => handleGroupSelect(null)}
                     >
                       <ArrowLeft className="h-3 w-3" /> Назад
@@ -400,6 +414,30 @@ function SidebarInner({
           </div>
         )}
       </div>
+      {!isCollapsed && channels.length > 0 && (
+        <div className="p-3 m-4 mt-auto rounded-xl bg-muted/40 border border-border flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2 truncate min-w-0">
+            <FileText className="h-4 w-4 text-primary shrink-0" />
+            <div className="flex flex-col truncate">
+              <span className="text-xs font-medium truncate">
+                Плейлист загружен
+              </span>
+              <span className="text-[10px] text-muted-foreground truncate">
+                Каналов: {channels.length}
+              </span>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            title="Удалить плейлист"
+            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-7 w-7 rounded-lg cursor-pointer shrink-0"
+            onClick={onClearClick}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -415,6 +453,8 @@ export default function Home() {
   const [visibleChannelsCount, setVisibleChannelsCount] = useState(50);
   const [visibleGroupsCount, setVisibleGroupsCount] = useState(50);
   const [mounted, setMounted] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const { theme, setTheme } = useTheme();
   const sidebarScrollRef = useRef<HTMLDivElement>(null);
   const channelsTriggerRef = useRef<HTMLDivElement>(null);
@@ -468,6 +508,27 @@ export default function Home() {
       setIsLoading(false);
     }
   }, []);
+
+  const handleClearPlaylist = async () => {
+    setIsClearing(true);
+    try {
+      const response = await fetch("/api/clear-db", { method: "POST" });
+      if (response.ok) {
+        localStorage.removeItem("neon_iptv_last_channel_id");
+        localStorage.removeItem("neon_iptv_selected_group");
+        setActiveChannel(null);
+        setSelectedGroup(null);
+        setChannels([]);
+        setIsAlertOpen(false);
+      } else {
+        alert("Не удалось очистить базу данных");
+      }
+    } catch (error) {
+      console.error("Ошибка при удалении:", error);
+    } finally {
+      setIsClearing(false);
+    }
+  };
 
   useEffect(() => {
     loadChannels();
@@ -678,6 +739,7 @@ export default function Home() {
             groupsTriggerRef={groupsTriggerRef}
             loadChannels={loadChannels}
             toggleFavorite={toggleFavorite}
+            onClearClick={() => setIsAlertOpen(true)}
           />
         </SidebarContent>
       </Sidebar>
@@ -689,6 +751,27 @@ export default function Home() {
           />
         </div>
       </main>
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удаление плейлиста</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы действительно хотите полностью удалить текущий плейлист? Это
+              действие необратимо.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isClearing}>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={isClearing}
+              onClick={handleClearPlaylist}
+            >
+              {isClearing ? "Удаление..." : "Удалить"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
