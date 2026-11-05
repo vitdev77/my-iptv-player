@@ -38,6 +38,8 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
               liveMaxLatencyDurationCount: 3,
               enableWorker: true,
               backBufferLength: 0,
+              maxBufferHole: 0.5,
+              highBufferWatchdogPeriod: 2,
             });
             hls.loadSource(url);
             hls.attachMedia(video);
@@ -50,15 +52,20 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
                     ? `${level.height}p`
                     : `Поток ${index + 1}`,
                   index: index,
+                  default: index === -1,
                 };
               });
-              qualitySelectors.unshift({ html: "Авто", index: -1 });
+              qualitySelectors.unshift({
+                html: "Авто",
+                index: -1,
+                default: true,
+              });
 
               art.setting.update({
                 name: "quality",
                 type: "selector",
                 html: "Качество",
-                selector: qualitySelectors,
+                selector: qualitySelectors as any,
                 onSelect: function (item: any) {
                   hls.currentLevel = item.index;
                   return item.html;
@@ -94,7 +101,7 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
           name: "quality",
           type: "selector",
           html: "Качество",
-          selector: [{ html: "Autо", index: -1 }],
+          selector: [{ html: "Авто", index: -1 }],
         },
       ],
       volume: 0.7,
@@ -134,6 +141,7 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
       }
       const hls = new Hls({
         backBufferLength: 0,
+        maxBufferHole: 0.5,
       });
       hls.loadSource(src);
       hls.attachMedia(video);
@@ -167,27 +175,29 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
   return (
     <div className="flex flex-col gap-4 w-full h-full min-h-0 flex-1">
       {src && (
-        <div className="flex justify-end gap-1 p-1 bg-muted rounded-lg text-xs w-fit self-end shrink-0">
-          <button
-            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
-              playerMode === "artplayer"
-                ? "bg-background shadow-sm font-medium"
-                : "text-muted-foreground"
-            }`}
-            onClick={() => setPlayerMode("artplayer")}
-          >
-            Artplayer
-          </button>
-          <button
-            className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
-              playerMode === "html5"
-                ? "bg-background shadow-sm font-medium"
-                : "text-muted-foreground"
-            }`}
-            onClick={() => setPlayerMode("html5")}
-          >
-            Нативный HTML5
-          </button>
+        <div className="flex justify-end items-center gap-2 w-full shrink-0">
+          <div className="flex gap-1 p-1 bg-muted rounded-lg text-xs">
+            <button
+              className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
+                playerMode === "artplayer"
+                  ? "bg-background shadow-sm font-medium"
+                  : "text-muted-foreground"
+              }`}
+              onClick={() => setPlayerMode("artplayer")}
+            >
+              Artplayer
+            </button>
+            <button
+              className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
+                playerMode === "html5"
+                  ? "bg-background shadow-sm font-medium"
+                  : "text-muted-foreground"
+              }`}
+              onClick={() => setPlayerMode("html5")}
+            >
+              Нативный HTML5
+            </button>
+          </div>
         </div>
       )}
 
