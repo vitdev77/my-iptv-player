@@ -1,12 +1,10 @@
-// src/components/videoPlayer.tsx
 "use client";
-
 import { useEffect, useRef, useState } from "react";
 import Artplayer from "artplayer";
 import Hls from "hls.js";
 
 interface VideoPlayerProps {
-  src: string;
+  src: string | null | undefined;
   name: string;
 }
 
@@ -15,7 +13,6 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
   const htmlVideoRef = useRef<HTMLVideoElement>(null);
   const instanceRef = useRef<Artplayer | null>(null);
   const hlsInstanceRef = useRef<Hls | null>(null);
-
   const [playerMode, setPlayerMode] = useState<"artplayer" | "html5">(
     "artplayer",
   );
@@ -44,10 +41,8 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
             hls.loadSource(url);
             hls.attachMedia(video);
 
-            // Динамически наполняем меню настроек уровнями качества из HLS
             hls.on(Hls.Events.MANIFEST_PARSED, function () {
               if (hls.levels.length <= 1) return;
-
               const qualitySelectors = hls.levels.map((level, index) => {
                 return {
                   html: level.height
@@ -56,8 +51,6 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
                   index: index,
                 };
               });
-
-              // Добавляем опцию авто-выбора качества
               qualitySelectors.unshift({ html: "Авто", index: -1 });
 
               art.setting.update({
@@ -79,7 +72,6 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
       autoplay: true,
       isLive: true,
       setting: true,
-      // Передаем базовую структуру настроек, чтобы шестеренка активировалась
       settings: [
         {
           name: "quality",
@@ -103,7 +95,6 @@ export function VideoPlayer({ src, name }: VideoPlayerProps) {
       }
     };
   }, [src, playerMode]);
-
   useEffect(() => {
     if (playerMode !== "html5") return;
     const video = htmlVideoRef.current;

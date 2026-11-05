@@ -97,10 +97,16 @@ function SidebarInner({
   return (
     <div className="flex flex-col h-full bg-card/50">
       <div
-        className={`p-4 border-b border-border flex flex-col gap-3 ${isCollapsed ? "px-1 py-4 items-center" : ""}`}
+        className={`p-4 border-b border-border flex flex-col gap-3 ${
+          isCollapsed ? "px-1 py-4 items-center" : ""
+        }`}
       >
         <div
-          className={`flex items-center w-full ${isCollapsed ? "flex-col gap-3 justify-center" : "justify-between px-1"}`}
+          className={`flex items-center w-full ${
+            isCollapsed
+              ? "flex-col gap-3 justify-center"
+              : "justify-between px-1"
+          }`}
         >
           <div
             className={`flex items-center gap-2 ${isCollapsed ? "hidden" : ""}`}
@@ -109,7 +115,11 @@ function SidebarInner({
             <h1 className="font-semibold text-lg tracking-tight">Neon IPTV</h1>
           </div>
           <div
-            className={`flex items-center gap-1 ${isCollapsed ? "flex-col gap-3 w-full justify-center items-center" : ""}`}
+            className={`flex items-center gap-1 ${
+              isCollapsed
+                ? "flex-col gap-3 w-full justify-center items-center"
+                : ""
+            }`}
           >
             {mounted && (
               <Button
@@ -144,30 +154,42 @@ function SidebarInner({
             {!selectedGroup && !searchQuery && (
               <div className="grid grid-cols-3 gap-1 p-1 bg-muted rounded-lg text-[11px]">
                 <Button
-                  variant={viewMode === "all" ? "outline" : "ghost"}
+                  variant={viewMode === "all" ? "default" : "ghost"}
                   size="xs"
-                  className="cursor-pointer text-center py-1 h-auto w-full"
+                  className={`cursor-pointer text-center py-1 h-auto w-full transition-colors ${
+                    viewMode !== "all"
+                      ? "text-muted-foreground hover:text-foreground"
+                      : "shadow-sm font-medium"
+                  }`}
                   onClick={() => handleViewModeChange("all")}
                 >
                   Все
                 </Button>
                 <Button
-                  variant={viewMode === "categories" ? "outline" : "ghost"}
+                  variant={viewMode === "categories" ? "default" : "ghost"}
                   size="xs"
-                  className="cursor-pointer text-center py-1 h-auto w-full"
+                  className={`cursor-pointer text-center py-1 h-auto w-full transition-colors ${
+                    viewMode !== "categories"
+                      ? "text-muted-foreground hover:text-foreground"
+                      : "shadow-sm font-medium"
+                  }`}
                   onClick={() => handleViewModeChange("categories")}
                 >
                   Категории
                 </Button>
                 <Button
-                  variant={viewMode === "favorites" ? "outline" : "ghost"}
+                  variant={viewMode === "favorites" ? "default" : "ghost"}
                   size="xs"
-                  className={`cursor-pointer text-center py-1 h-auto w-full flex items-center justify-center gap-1 ${
-                    viewMode === "favorites" ? "text-yellow-500" : ""
+                  className={`cursor-pointer text-center py-1 h-auto w-full flex items-center justify-center gap-1 transition-colors ${
+                    viewMode !== "favorites"
+                      ? "text-muted-foreground hover:text-foreground"
+                      : "shadow-sm font-medium"
                   }`}
                   onClick={() => handleViewModeChange("favorites")}
                 >
-                  <Star className="h-3 w-3 fill-current" />
+                  <Star
+                    className={`h-3 w-3 ${viewMode === "favorites" ? "fill-current" : ""}`}
+                  />
                   {favoriteChannels.length}
                 </Button>
               </div>
@@ -226,7 +248,7 @@ function SidebarInner({
                         <span className="text-xs font-mono opacity-50 w-7 shrink-0 text-right">
                           {index + 1}
                         </span>
-                        {channel.logo ? (
+                        {channel.logo && channel.logo.trim() !== "" ? (
                           <img
                             src={channel.logo}
                             alt=""
@@ -291,7 +313,7 @@ function SidebarInner({
                         <span className="text-xs font-mono opacity-50 w-7 shrink-0 text-right">
                           {index + 1}
                         </span>
-                        {channel.logo ? (
+                        {channel.logo && channel.logo.trim() !== "" ? (
                           <img
                             src={channel.logo}
                             alt=""
@@ -433,11 +455,11 @@ export default function Home() {
           const last = data.find((c) => String(c.id) === String(lastChannelId));
           if (last) {
             setActiveChannel(last);
-          } else if (data.length > 0) {
-            setActiveChannel(data[0]);
+          } else {
+            setActiveChannel(data.length > 0 ? data[0] : null);
           }
-        } else if (data.length > 0) {
-          setActiveChannel(data[0]);
+        } else {
+          setActiveChannel(data.length > 0 ? data[0] : null);
         }
       }
     } catch (error) {
@@ -588,7 +610,7 @@ export default function Home() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (
-          entries[0]?.isIntersecting &&
+          entries?.[0]?.isIntersecting &&
           visibleChannelsCount < filteredChannels.length
         ) {
           setVisibleChannelsCount((prev) => prev + 50);
@@ -612,7 +634,7 @@ export default function Home() {
     const observer = new IntersectionObserver(
       (entries) => {
         if (
-          entries[0]?.isIntersecting &&
+          entries?.[0]?.isIntersecting &&
           visibleGroupsCount < filteredGroups.length
         ) {
           setVisibleGroupsCount((prev) => prev + 50);
@@ -662,7 +684,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col items-center justify-center p-4 lg:p-6 bg-background h-full w-full">
         <div className="w-full h-full flex items-center justify-center">
           <VideoPlayer
-            src={activeChannel?.url ?? ""}
+            src={activeChannel?.url ?? null}
             name={activeChannel?.name ?? ""}
           />
         </div>
